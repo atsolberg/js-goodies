@@ -103,6 +103,11 @@ var util = (function($) {
                 }
                 var validator = /^-?((1?[0-7]?|[0-9]?)[0-9]|180)\.[0-9]{1,6}$/;
                 return validator.test(long);
+            },
+
+            email: function (email) {
+                var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+                return re.test(email);
             }
 
         },
