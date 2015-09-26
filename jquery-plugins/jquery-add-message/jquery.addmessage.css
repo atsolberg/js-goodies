@@ -1,0 +1,51 @@
+.user-message {
+    position: relative;
+    padding: 5px 10px 5px 30px;
+    border-radius: @border-radius;
+    border-width: 1px;
+    border-style: solid;
+    margin-bottom: 10px;
+    line-height: normal;
+}
+.user-message:before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 5px;
+    width: 16px;
+    height: 16px;
+    background-image: url('icons/icons.png');
+}
+
+.user-message.error {
+    background: pink;
+    border-color:@red;
+}
+.user-message.error:before {
+    background-position: -512px -144px;
+}
+
+.user-message.success {
+    background: #c3fdb8;
+    border-color: @green;
+}
+
+.user-message.info, .user-message.pending {
+    background: #dde5ff;
+    border-color: #849ddf;
+}
+.user-message.info:before {
+    background-position: -96px -192px;
+}
+.user-message.pending:before {
+    background-image: url(../Icons/spinner.gif);
+    background-position: 0px, 0px;
+}
+
+.user-message.warning {
+    background: #ffffda; 
+    border-color: @orange;
+}
+.user-message.warning:before {
+    background-position: -448px -144px;
+}

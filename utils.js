@@ -61,6 +61,9 @@ var util = (function($) {
          * i.e.
          * util.percent(13, 205, 3) results in "6.341%"
          * util.percent(5, 10, 3) results in "50%"
+         * @param {Number} count - The current count of items.
+         * @param {Number} total - The total number of items.
+         * @param {Number} decimals - The number of decimal places.
          */
         percent: function(count, total, decimals) {
             return Number((count / total * 100).toFixed(decimals)).toString() + '%';
