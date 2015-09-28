@@ -147,6 +147,35 @@ var util = (function($) {
             } else {
                 return decodeURIComponent(results[1].replace(/\+/g, ' '));
             }
+        },
+
+        /** 
+         * Jquery (and plain old javascript) returns color values in rgb format:
+         *  rgb(0, 153, 51)
+         * This function will convert it to this format:
+         *  #009933
+         */
+        rgbToHex: function (rgb) {
+
+            var compositeRgb,
+                hex = function (x) {
+                    return ('0' + parseInt(x, 10).toString(16)).slice(-2);
+                };
+                
+            if ('undefined' === typeof rgb || '' === rgb || null === rgb) {
+                return '#000000';
+            }
+            
+            // IE8 returns color in hex
+            if (rgb.match(/^#[\da-f]{6}$/)) {
+                return rgb;
+            }
+            
+            rgb = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*(\d+))?\)$/);
+            compositeRgb = hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+            compositeRgb = compositeRgb.toLowerCase();
+
+            return '#' + compositeRgb;
         }
 
     };
