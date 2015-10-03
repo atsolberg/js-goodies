@@ -37,8 +37,6 @@ var globals = {
         paging : '.paging-area .previous-page .button, .paging-area .next-page .button, .paging-area .page-size a'
     },
     
-    timezone: (jstz ? jstz.determine().name() : ''),
-    
     rp: {
         updater_delay: 4000
     }
