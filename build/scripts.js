@@ -1964,7 +1964,7 @@ var util = (function($) {
 
     return module;
 
-};)(window.jQuery);
+})(window.jQuery);
 /** 
  * Component and ui functionality.
  * 
