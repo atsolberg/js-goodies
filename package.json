@@ -1,0 +1,24 @@
+{
+  "name": "js-goodies",
+  "version": "1.0.0",
+  "description": "A collection of javascript utils",
+  "main": "gulpfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/atsolberg/js-goodies.git"
+  },
+  "author": "Aaron Solberg",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/atsolberg/js-goodies/issues"
+  },
+  "homepage": "https://github.com/atsolberg/js-goodies",
+  "dependencies": {
+    "gulp": "^3.9.0",
+    "gulp-concat": "^2.6.0",
+    "gulp-plumber": "^1.0.1"
+  }
+}
