@@ -276,9 +276,6 @@ util.ui = (function () {
         
         autowire: function () {
             
-            /** Add placeholder functionality if needed. */
-            if (!Modernizr.input.placeholder) $('input, textarea').placeholder();
-            
             /** Fix file path on all our file inputs usage in windows. */
             $(document).on('change', '.file-upload input[type="file"]', function (ev) {
                 
@@ -801,4 +798,4 @@ util.ui = (function () {
     return mod;
 })();
 
-$(function() { util.autowire(); })
+$(function() { util.ui.autowire(); });
