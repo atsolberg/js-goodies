@@ -7,6 +7,15 @@ var util = (function($) {
 
     var module = {
 
+        /** Chunk an array into smaller arrays. */
+        chunk = function(arr, chunkSize) {
+            var groups = [], i;
+            for (i = 0; i < arr.length; i += chunkSize) {
+                groups.push(arr.slice(i, i + chunkSize));
+            }
+            return groups;
+        },
+
         /** Support for inheritance: inherit superType's prototype. */
         inheritPrototype: function(subType, superType) {
 

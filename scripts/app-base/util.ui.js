@@ -800,3 +800,5 @@ util.ui = (function () {
     
     return mod;
 })();
+
+$(function() { util.autowire(); })

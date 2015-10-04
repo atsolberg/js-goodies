@@ -1787,6 +1787,15 @@ var util = (function($) {
 
     var module = {
 
+        /** Chunk an array into smaller arrays. */
+        chunk = function(arr, chunkSize) {
+            var groups = [], i;
+            for (i = 0; i < arr.length; i += chunkSize) {
+                groups.push(arr.slice(i, i + chunkSize));
+            }
+            return groups;
+        },
+
         /** Support for inheritance: inherit superType's prototype. */
         inheritPrototype: function(subType, superType) {
 
@@ -2765,6 +2774,8 @@ util.ui = (function () {
     
     return mod;
 })();
+
+$(function() { util.autowire(); })
 /** jquery.cookie plugin config */
 $.cookie.json = true;
 $.extend($.cookie.defaults, { expires: 365, path: '/' });
