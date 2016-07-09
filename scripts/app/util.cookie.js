@@ -17,13 +17,13 @@ util.cookie = (function () {
     'use strict';
 
     var cookieName = 'ats';
-    
+
     return {
-            
-        /** 
-         * Retrieve value from JSON object store in the cookie. 
+
+        /**
+         * Retrieve value from JSON object store in the cookie.
          * scope and persistId are concatinated to form the property name of
-         * the value to retrieve. 
+         * the value to retrieve.
          * @param {string} scope - Scope of the value.
          * @param {string} persistId - Id of the value.
          * @param {string} defaultValue - Returned value if the requested property is not found.
@@ -38,15 +38,15 @@ util.cookie = (function () {
                 return defaultValue;
             }
         },
-        
-        /** 
+
+        /**
          * Sets a property on the JSON object stored in the 'util' cookie.
          * scope and persistId are concatinated to form the property name to
-         * set the value on in the JSON object. 
+         * set the value on in the JSON object.
          * e.g.
          * scope = 'foo', persistId = 'bar', value = 'cat'
          * results in: { foobar: 'cat' }
-         *  
+         *
          * @param {string} scope - Scope for this value.
          * @param {string} persistId - Id for this value.
          * @param {string} value - Value to store.
@@ -57,7 +57,7 @@ util.cookie = (function () {
             c[scope + persistId] = value;
             $.cookie(cookieName, c);
         }
-        
+
     };
-    
+
 })();
