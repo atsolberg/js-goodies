@@ -10,13 +10,58 @@ util = (function($) {
   /** @type {object} -  The public API of this mod. */
   let mod = {};
 
+
+
+  /* GENERAL
+   --------------------------------------------------------------- */
+
+  mod.identity = (o) => o;
+
+  /** Convenient 'do nothing' function that doesn't require an argument like void(0); */
+  mod.noop = () => {};
+
+
+  /* STRING UTILS
+   --------------------------------------------------------------- */
+
+  mod.repeat = (str, times) => (new Array(times + 1)).join(str);
+  mod.pad = (num, maxLength) => mod.repeat(`0`, maxLength - num.toString().length) + num;
+  mod.replaceAt = (s, i, c) => s.substr(0, i) + c + s.substr(i + 1);
+  mod.endsWith = (s, c) => s[s.length -1] === c;
+
+  /** Generate a UUID. */
+  mod.uuid = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      let r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
+      return v.toString(16);
+    });
+  };
+
+
+
+  /* NUMBER UTILS
+   --------------------------------------------------------------- */
+
+  /**
+   * Returns a random number between min (inclusive) and max (exclusive)
+   */
+  mod.random = (min, max) => Math.random() * (max - min) + min;
+
+  /**
+   * Returns a random integer between min (inclusive) and max (inclusive)
+   * Using Math.round() will give you a non-uniform distribution.
+   */
+  mod.randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+
+
+  /* OBJECT UTILS
+   --------------------------------------------------------------- */
+
   /**
    * Namespace function: so we don't have to put all those checks to see if
    * modules exist and either create empty ones or set a reference to one
    * that was previously created.
-   * Creates a global namespace.
-   * See Zakas, Maintainable JavaScript, pp. 72-73, and Stefanov,
-   * Javascript Patterns, pp. 89-90
    */
   mod.namespace = function(ns) {
     var parts = ns.split('.'),
@@ -38,25 +83,18 @@ util = (function($) {
     return object;
   };
 
-  /** Console log alias's that only fire when in dev mode. */
-  mod.log = function (...args) { if (globals.dev) console.log.apply(console, args); };
-  mod.info = function (...args) { if (globals.dev) console.info.apply(console, args); };
-  mod.debug = function (...args) { if (globals.dev) console.debug.apply(console, args); };
-  mod.warn = function (...args) { if (globals.dev) console.warn.apply(console, args); };
-  mod.error = function (...args) { if (globals.dev) console.error.apply(console, args); };
-
-  mod.repeat = (str, times) => (new Array(times + 1)).join(str);
-
-  mod.pad = (num, maxLength) => mod.repeat(`0`, maxLength - num.toString().length) + num;
-
-  mod.replaceAt = (s, i, c) => s.substr(0, i) + c + s.substr(i + 1);
-  mod.endsWith = (s, c) => s[s.length -1] === c;
-
   /**
-   * Return the value of the property at the property string path.
+   * Safely return the value of the property at the property string path.
+   * If the path does not exist, {undefined} is returned or an error
+   * is thrown if [enforce] is {true}.
+   *
+   * NOTE: If the value is {null}, {undefined} is returned (or error thrown),
+   *       but if value is an empty string or empty object, the value is returned.
+   *
    * @param {object} obj - The object to lookup the property on.
    * @param {string} path - The property path string, i.e. `foo.bar.baz`.
    * @param {boolean} [enforce] - If `true`, throws an error if the path is not valid for the object.
+   * @returns The value at the property path if not {undefined} or {null}, otherwise {undefined}.
    */
   mod.prop = (obj, path, enforce) => {
 
@@ -73,8 +111,8 @@ util = (function($) {
 
     for (i = 0; i < parts.length; i++) {
 
-      let part = parts[i],
-          value = item[part];
+      let part = parts[i];
+      let value = item[part];
 
       // Allow empty strings/objects.
       if (value == null || typeof value === 'undefined') {
@@ -94,8 +132,33 @@ util = (function($) {
 
   };
 
+  /**
+   * Returns and array of the values in an object.
+   * It only returns the objects own values, not those from the prototype chain.
+   */
+  mod.values = (obj) => Object.keys(obj || {}).map(key => obj[key]);
+
+  /** Reverses a simple object containing key - value pairs. */
+  mod.reverse = (obj, callback) => {
+    callback = callback || mod.identity;
+    return Object.keys(obj).reduce((prev, curr) => {
+      prev[obj[curr]] = callback(curr);
+      return prev
+    }, {});
+  };
+
+
+
+  /* FUNCTION UTILS
+   --------------------------------------------------------------- */
+
   /** Returns `true` only if the property on the object is a function. */
   mod.isFunc = (obj, path) => typeof mod.prop(obj, path) === 'function';
+
+
+
+  /* ARRAY UTILS
+   --------------------------------------------------------------- */
 
   /** Chunk an array into smaller arrays. */
   mod.chunk = (arr, chunkSize) => {
@@ -105,6 +168,25 @@ util = (function($) {
     }
     return groups;
   };
+
+  /**
+   * Add an item or array of items in between every item in the array.
+   * @param {Array} arr - The array to weave things into.
+   * @param {*} o - The item to weave into the array, if `o` is an Array
+   *        then the items of `o` are woven into `arr` sequentially.
+   */
+  mod.weave = (arr, o) => {
+    return arr.reduce((prev, curr, i) => {
+      prev.push(curr);
+      if (i !== arr.length -1) prev.push(Array.isArray(o) ? o[i] : o);
+      return prev;
+    }, []);
+  };
+
+
+
+  /* MISC
+   --------------------------------------------------------------- */
 
   /**
    * Parse the inner text contents of 'selector' as JSON.
@@ -127,10 +209,7 @@ util = (function($) {
     return JSON.stringify(result);
   };
 
-  /** Convenient 'do nothing' function that doesn't require an argument like void(0); */
-  mod.noop = () => {};
-
-  /** String Formatters */
+  /** Formatters */
   mod.format = {
 
     /** Format times as ##:##.### */
@@ -142,8 +221,8 @@ util = (function($) {
     /**
      * Return a formatted percent string to the decimal places specified.
      * i.e.
-     * util.format.percent(13, 205, 3) results in "6.341%"
-     * util..format.percent(5, 10, 3) results in "50%"
+     * sn.format.percent(13, 205, 3) results in "6.341%"
+     * sn.format.percent(5, 10, 3) results in "50%"
      * @param {Number} count - The current count of items.
      * @param {Number} total - The total number of items.
      * @param {Number} decimals - The number of decimal places.
@@ -155,7 +234,7 @@ util = (function($) {
     /**
      * Return a formatted currency string for the supplied number.
      * i.e.
-     * util.format.currency(123456789.12345) results in "$123,456,789.12"
+     * sn.format.currency(123456789.12345) results in "$123,456,789.12"
      * @param {Number} n - The currency amount.
      */
     currency(n) {
@@ -187,9 +266,9 @@ util = (function($) {
         let digit = stripped[i];
         if (typeof digit == 'undefined') break;
 
-        if (i < 3) { area = mod.replaceAt(area, i, digit); }
-        else if (i < 6) { first = mod.replaceAt(first, i - 3, digit); }
-        else { second = mod.replaceAt(second, i - 6, digit); }
+        if (i < 3) { area = sn.replaceAt(area, i, digit); }
+        else if (i < 6) { first = sn.replaceAt(first, i - 3, digit); }
+        else { second = sn.replaceAt(second, i - 6, digit); }
       }
 
       let result =  `(${area}) ${first} - ${second}`;
@@ -203,12 +282,6 @@ util = (function($) {
 
   /** Use performance API if it's available for better precision. */
   mod.timer = mod.isFunc(performance, 'now') ? performance : Date;
-
-  /**
-   * Returns and array of the values in an object.
-   * It only returns the objects own values, not those from the prototype chain.
-   */
-  mod.values = (obj) => Object.keys(obj || {}).map(key => obj[key]);
 
   mod.regex = {
     email: /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i,
@@ -259,7 +332,7 @@ util = (function($) {
       discover: number => mod.regex.cc.discover.test(number),
       jcb: number => mod.regex.cc.jcb.test(number),
 
-      any: number => mod.regex.cc.visa.test(number) ||
+      all: number => mod.regex.cc.visa.test(number) ||
                      mod.regex.cc.master.test(number) ||
                      mod.regex.cc.amex.test(number) ||
                      mod.regex.cc.diners.test(number) ||
@@ -275,25 +348,6 @@ util = (function($) {
       }
     }
 
-  };
-
-  /**
-   * Returns a random number between min (inclusive) and max (exclusive)
-   */
-  mod.random = (min, max) => Math.random() * (max - min) + min;
-
-  /**
-   * Returns a random integer between min (inclusive) and max (inclusive)
-   * Using Math.round() will give you a non-uniform distribution.
-   */
-  mod.randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-
-  /** Generate a UUID. */
-  mod.uuid = () => {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      let r = Math.random()*16|0, v = c == 'x' ? r : (r&0x3|0x8);
-      return v.toString(16);
-    });
   };
 
   /** Retrieve a request parameter by name. */
