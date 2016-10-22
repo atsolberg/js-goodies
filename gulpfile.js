@@ -1,25 +1,47 @@
-var gulp = require('gulp'),
-    plumber = require('gulp-plumber'),
-    concat = require('gulp-concat'),
-    srcs = [];
+const gulp = require('gulp');
+const plumber = require('gulp-plumber');
+const concat = require('gulp-concat');
+const babel = require('gulp-babel');
+const rename = require('gulp-rename');
+const uglify = require('gulp-uglify');
+const del = require('del');
 
-srcs.push('./scripts/app-base/polyfills.js');
-srcs.push('./scripts/vendor/jquery-2.1.4.min.js');
-srcs.push('./scripts/vendor/jquery-ui-1.11.4.min.js');
-srcs.push('./scripts/vendor/plugins/**/*.js');
-srcs.push('./scripts/app-plugins/**/*.js');
-srcs.push('./scripts/app-base/const.js');
-srcs.push('./scripts/app-base/util.js');
-srcs.push('./scripts/app-base/util.ui.js');
-srcs.push('./scripts/app/**/*.js');
-
-/** JS Task */
-gulp.task('js', function () {
-    gulp.src(srcs)
-        .pipe(plumber())
-        .pipe(concat('scripts.js'))
-        .pipe(gulp.dest('./build'));
+gulp.task('clean', function () {
+  return del(['./build/**/*']);
 });
 
-/** Default */
-gulp.task('default', ['js']);
+// App Vendor JS
+gulp.task('vendor-js', function () {
+  return gulp.src([
+    './node_modules/jquery/dist/jquery.min.js',
+    './node_modules/cookiejs/cookie.min.js'
+  ])
+  .pipe(plumber())
+  .pipe(concat('vendor.js'))
+  .pipe(gulp.dest('./build'));
+});
+
+// App JS
+gulp.task('scripts', function () {
+  return gulp.src([
+    './scripts/app-plugins/**/*.js',
+    './scripts/app-base/polyfills.js',
+    './scripts/app-base/util.js',
+    './scripts/app/**/*.js'
+  ])
+  .pipe(plumber())
+  .pipe(concat('util.js'))
+  .pipe(babel({ presets: ['es2015'] }))
+  .pipe(gulp.dest('./build'))
+  .pipe(rename('util.min.js'))
+  .pipe(uglify())
+  .pipe(gulp.dest('./build'));
+});
+
+// Watch Files For Changes
+gulp.task('watch', function () {
+  return gulp.watch('./scripts/**/*.js', ['clean', 'vendor-js', 'scripts']);
+});
+
+// Default Task
+gulp.task('default', ['clean', 'vendor-js', 'scripts', 'watch']);

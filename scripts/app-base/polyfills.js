@@ -21,7 +21,7 @@ if (!Array.from) {
       var len = toInteger(value);
       return Math.min(Math.max(len, 0), maxSafeInteger);
     };
-
+    
     return function from(arrayLike) {
       var C = this;
       var items = Object(arrayLike);
@@ -38,11 +38,11 @@ if (!Array.from) {
           T = arguments[2];
         }
       }
-
+      
       var len = toLength(items.length);
-
+      
       var A = isCallable(C) ? Object(new C(len)) : new Array(len);
-
+      
       var k = 0;
       var kValue;
       while (k < len) {
@@ -91,17 +91,17 @@ if (!Array.prototype.insert) {
 if (!Array.prototype.move) {
   Array.prototype.move = function(value, by) {
     'use strict';
-
+    
     var index = this.indexOf(value),
         newPos = index - (by || 1);
-
+    
     if (index === -1) throw new Error('Element not found in array');
-
+    
     if (newPos < 0) newPos = 0;
-
+    
     this.splice(index, 1);
     this.splice(newPos, 0, value);
-
+    
   };
 }
 
@@ -109,17 +109,17 @@ if (!Array.prototype.move) {
 if (!Array.prototype.moveAt) {
   Array.prototype.moveAt = function(index, by) {
     'use strict';
-
+    
     var newPos = index - (by || 1);
     var value = this[index];
-
+    
     if (index === -1) throw new Error('Element not found in array');
-
+    
     if (newPos < 0) newPos = 0;
-
+    
     this.splice(index, 1);
     this.splice(newPos, 0, value);
-
+    
   };
 }
 
@@ -127,10 +127,10 @@ if (!Array.prototype.moveAt) {
 if (!Array.prototype.remove) {
   Array.prototype.remove = function(index) {
     'use strict';
-
+    
     if (index === -1) throw new Error('Index should be a positive integer');
     return this.splice(index, 1)[0];
-
+    
   };
 }
 
@@ -138,17 +138,17 @@ if (!Array.prototype.remove) {
 if (!Array.prototype.filter) {
   Array.prototype.filter = function(fun/*, thisArg*/) {
     'use strict';
-
+    
     if (this === void 0 || this === null) {
       throw new TypeError();
     }
-
+    
     var t = Object(this);
     var len = t.length >>> 0;
     if (typeof fun !== 'function') {
       throw new TypeError();
     }
-
+    
     var res = [];
     var thisArg = arguments.length >= 2 ? arguments[1] : void 0;
     for (var i = 0; i < len; i++) {
@@ -159,7 +159,7 @@ if (!Array.prototype.filter) {
         }
       }
     }
-
+    
     return res;
   };
 }
@@ -169,15 +169,15 @@ if (!Array.prototype.forEach) {
   Array.prototype.forEach = function forEach(callback, thisArg) {
     'use strict';
     var T, k;
-
+    
     if (this == null) {
       throw new TypeError('this is null or not defined');
     }
-
+    
     var kValue,
         O = Object(this),
         len = O.length >>> 0;
-
+    
     if ({}.toString.call(callback) !== '[object Function]') {
       throw new TypeError(callback + ' is not a function');
     }
@@ -208,7 +208,7 @@ if (!Array.prototype.findIndex) {
     var length = list.length >>> 0;
     var thisArg = arguments[1];
     var value;
-
+    
     for (var i = 0; i < length; i++) {
       value = list[i];
       if (predicate.call(thisArg, value, i, list)) {
@@ -232,7 +232,7 @@ if (!Array.prototype.find) {
     var length = list.length >>> 0;
     var thisArg = arguments[1];
     var value;
-
+    
     for (var i = 0; i < length; i++) {
       value = list[i];
       if (predicate.call(thisArg, value, i, list)) {
@@ -245,14 +245,18 @@ if (!Array.prototype.find) {
 
 /** Array.includes */
 if (!Array.prototype.includes) {
-  Array.prototype.includes = function(searchElement /*, fromIndex*/ ) {
+  Array.prototype.includes = function(searchElement /*, fromIndex*/) {
     'use strict';
+    if (this == null) {
+      throw new TypeError('Array.prototype.includes called on null or undefined');
+    }
+    
     var O = Object(this);
-    var len = parseInt(O.length) || 0;
+    var len = parseInt(O.length, 10) || 0;
     if (len === 0) {
       return false;
     }
-    var n = parseInt(arguments[1]) || 0;
+    var n = parseInt(arguments[1], 10) || 0;
     var k;
     if (n >= 0) {
       k = n;
@@ -277,7 +281,7 @@ if (!Array.prototype.includes) {
 if (!Object.create) {
   Object.create = (function () {
     function F() {};
-
+    
     return function (o) {
       if (arguments.length != 1) {
         throw new Error('Object.create implementation only accepts one parameter.');
@@ -296,7 +300,7 @@ if (typeof Object.assign != 'function') {
       if (target === undefined || target === null) {
         throw new TypeError('Cannot convert undefined or null to object');
       }
-
+      
       var output = Object(target);
       for (var index = 1; index < arguments.length; index++) {
         var source = arguments[index];
@@ -316,12 +320,12 @@ if (typeof Object.assign != 'function') {
 /** Function.prototype.bind */
 if (!Function.prototype.bind) {
   Function.prototype.bind = function (oThis) {
-
+    
     if (typeof this !== 'function') {
       // closest thing possible to the ECMAScript 5 internal IsCallable function
       throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
     }
-
+    
     var
         aArgs = Array.prototype.slice.call(arguments, 1),
         fToBind = this,
@@ -330,10 +334,10 @@ if (!Function.prototype.bind) {
           return fToBind.apply(this instanceof fNOP && oThis ? this : oThis,
               aArgs.concat(Array.prototype.slice.call(arguments)));
         };
-
+    
     fNOP.prototype = this.prototype;
     fBound.prototype = new fNOP();
-
+    
     return fBound;
   };
 }
