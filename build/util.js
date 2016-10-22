@@ -2,6 +2,8 @@
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 /** 
  * Flash an element's background with a color for a duration.
  * @param {object} [options] - Options hash containing color and duration.
@@ -1303,6 +1305,1075 @@ util.hub = function () {
     }
   };
 }();
+util.namespace('util.react');
+
+/**
+ * Module to house common react components and functionality.
+ *
+ * @module util.react
+ * @requires jQuery
+ * @requires classNames
+ * @requires React
+ * @requires ReactDOM
+ * @requires ReactBootstrap
+ */
+util.react = function ($, i18n, cx, R, RD, bs) {
+
+  var mod = {}; // The module's public API
+
+  var PNU = i18n.phonenumbers.PhoneNumberUtil.getInstance();
+  var PNF = i18n.phonenumbers.PhoneNumberFormat;
+
+  var Modal = bs.Modal;
+  var Button = bs.Button;
+
+
+  var _cc = R.createClass;
+  var PropTypes = R.PropTypes;
+
+  var _common_text_input_props = {
+    label: PropTypes.any,
+    id: PropTypes.string,
+
+    name: PropTypes.string,
+    value: PropTypes.string.isRequired,
+    onChange: PropTypes.func.isRequired,
+    error: PropTypes.string,
+    placeholder: PropTypes.string,
+
+    classes: PropTypes.string,
+    wrapperClasses: PropTypes.string
+  };
+
+  /* COMPONENTS
+   --------------------------------------------------------------- */
+
+  mod.AddressFields = _cc({
+
+    displayName: 'AddressFields',
+
+    propTypes: {
+      address: PropTypes.object.isRequired,
+      property: PropTypes.string.isRequired,
+      actions: PropTypes.object.isRequired,
+      states: PropTypes.array.isRequired
+    },
+
+    render: function render() {
+      var TextInput = mod.TextInput;
+      var ZipInput = mod.ZipInput;
+      var PhoneInput = mod.PhoneInput;
+
+
+      var prop = this.props.property;
+      var _props = this.props;
+      var address = _props.address;
+      var actions = _props.actions;
+      var change = actions.change;
+      var dispatch = actions.dispatch;
+
+      var states = this.props.states.map(function (state) {
+        return React.createElement(
+          'option',
+          { key: state.isocode, value: state.isocode },
+          state.name
+        );
+      });
+
+      var checkEmail = mod.validators.email(prop + '.email.error', dispatch);
+
+      return React.createElement(
+        'div',
+        null,
+        React.createElement(
+          'div',
+          { className: 'row' },
+          React.createElement(
+            'div',
+            { className: 'col-xs-12 col-sm-6' },
+            React.createElement(TextInput, { label: 'First Name', name: 'firstName', onChange: change(prop + '.firstName'),
+              value: address.firstName.value, error: address.firstName.error })
+          ),
+          React.createElement(
+            'div',
+            { className: 'col-xs-12 col-sm-6' },
+            React.createElement(TextInput, { label: 'Last Name', name: 'lastName', onChange: change(prop + '.lastName'),
+              value: address.lastName.value, error: address.lastName.error })
+          )
+        ),
+        React.createElement(
+          'div',
+          { className: 'row' },
+          React.createElement(
+            'div',
+            { className: 'col-xs-12' },
+            React.createElement(TextInput, { label: 'Address', name: 'streetAddress', onChange: change(prop + '.streetAddress'),
+              value: address.streetAddress.value, error: address.streetAddress.error }),
+            React.createElement(TextInput, { label: 'Apt / Suite', desc: '(optional)', name: 'aptOption', onChange: change(prop + '.aptOption'),
+              value: address.aptOption.value, error: address.aptOption.error }),
+            React.createElement(TextInput, { label: 'City', name: 'city', onChange: change(prop + '.city'),
+              value: address.city.value, error: address.city.error })
+          )
+        ),
+        React.createElement(
+          'div',
+          { className: 'row' },
+          React.createElement(
+            'div',
+            { className: 'col-xs-12 col-sm-6' },
+            React.createElement(
+              'div',
+              { className: 'form-group' },
+              React.createElement(
+                'label',
+                { className: 'control-label' },
+                'State'
+              ),
+              React.createElement(
+                'select',
+                { className: 'form-control', onChange: change(prop + '.state'),
+                  value: address.state.value },
+                states
+              )
+            )
+          ),
+          React.createElement(
+            'div',
+            { className: 'col-xs-12 col-sm-6' },
+            React.createElement(ZipInput, { name: 'zip', onChange: change(prop + '.zip'),
+              value: address.zip.value, error: address.zip.error })
+          )
+        ),
+        React.createElement(
+          'div',
+          { className: 'row' },
+          React.createElement(
+            'div',
+            { className: 'col-xs-12' },
+            React.createElement(TextInput, { type: 'email', label: 'Email', name: 'email',
+              onChange: change(prop + '.email'), onBlur: checkEmail,
+              value: address.email.value, error: address.email.error })
+          )
+        ),
+        React.createElement(
+          'div',
+          { className: 'row' },
+          React.createElement(
+            'div',
+            { className: 'col-xs-12 col-sm-6' },
+            React.createElement(PhoneInput, { name: 'phone', onChange: change(prop + '.phone'),
+              value: address.phone.value, error: address.phone.error })
+          )
+        )
+      );
+    }
+  });
+
+  /**
+   * A section container with a header and the option for a control
+   * to expand the content to full width. Use the `controls` prop
+   * to pass your own control components.
+   */
+  mod.Section = _cc({
+
+    displayName: 'Section',
+
+    propTypes: {
+      title: PropTypes.any.isRequired,
+      id: PropTypes.string,
+      expandable: PropTypes.bool,
+      controls: PropTypes.any
+    },
+
+    getInitialState: function getInitialState() {
+      return { wide: false };
+    },
+    toggle: function toggle() {
+      this.setState({ wide: !this.state.wide });
+    },
+    render: function render() {
+      var _props2 = this.props;
+      var title = _props2.title;
+      var id = _props2.id;
+      var expandable = _props2.expandable;
+      var controls = _props2.controls;
+      var children = _props2.children;
+      var wide = this.state.wide;
+      var icon = cx('fa', {
+        'fa-expand': !this.state.wide,
+        'fa-compress': this.state.wide
+      });
+      var headerProps = {};
+
+      if (id) headerProps.id = id;
+
+      return React.createElement(
+        'div',
+        null,
+        React.createElement(
+          'div',
+          { className: 'container' },
+          React.createElement(
+            'h2',
+            headerProps,
+            title,
+            React.createElement(
+              'div',
+              { className: 'dib pull-right' },
+              controls,
+              expandable && React.createElement(
+                'button',
+                { type: 'button', className: 'btn btn-link', onClick: this.toggle },
+                React.createElement('i', { className: icon })
+              )
+            )
+          ),
+          React.createElement('hr', { className: 'rule-xs' })
+        ),
+        React.createElement(
+          'div',
+          { className: cx({ container: !expandable || !wide }) },
+          children
+        )
+      );
+    }
+  });
+
+  /**
+   * A component that renders a bootstrap form group with a text input.
+   * Supports error/validation visualization.
+   */
+  mod.TextInput = _cc({
+
+    displayName: 'TextInput',
+
+    propTypes: Object.assign({}, _common_text_input_props, {
+      pattern: PropTypes.string,
+      autoFocus: PropTypes.string,
+      maxLength: PropTypes.string,
+      desc: PropTypes.string
+    }),
+
+    getDefaultProps: function getDefaultProps() {
+      return { type: 'text' };
+    },
+    render: function render() {
+      var _props3 = this.props;
+      var label = _props3.label;
+      var classes = _props3.classes;
+      var wrapperClasses = _props3.wrapperClasses;
+      var desc = _props3.desc;
+      var id = _props3.id;
+      var placeholder = _props3.placeholder;
+      var autoFocus = _props3.autoFocus;
+      var pattern = _props3.pattern;
+      var maxLength = _props3.maxLength;
+      var _props4 = this.props;
+      var type = _props4.type;
+      var name = _props4.name;
+      var value = _props4.value;
+      var onChange = _props4.onChange;
+      var onBlur = _props4.onBlur;
+      var onFocus = _props4.onFocus;
+      var onKeyUp = _props4.onKeyUp;
+      var error = _props4.error;
+
+      var msg = React.createElement(
+        'div',
+        { className: 'text-danger', style: { marginTop: '5px' } },
+        error
+      );
+      var inputProps = { onChange: onChange, value: value, ref: 'input' };
+      var labelProps = {};
+
+      if (id) {
+        inputProps.id = id;
+        labelProps.htmlFor = id;
+      }
+      if (name) inputProps.name = name;
+      if (onBlur) inputProps.onBlur = onBlur;
+      if (onFocus) inputProps.onFocus = onFocus;
+      if (onKeyUp) inputProps.onKeyUp = onKeyUp;
+      if (placeholder) inputProps.placeholder = placeholder;
+      if (pattern) inputProps.pattern = pattern;
+      if (maxLength) inputProps.maxLength = maxLength;
+      if (autoFocus) inputProps.autoFocus = autoFocus;
+
+      return React.createElement(
+        'div',
+        { className: cx('form-group', { 'has-error': error }, wrapperClasses) },
+        label && React.createElement(
+          'label',
+          _extends({ className: 'control-label' }, labelProps),
+          label
+        ),
+        desc && React.createElement(
+          'span',
+          { className: 'control-desc' },
+          ' ',
+          desc
+        ),
+        React.createElement('input', _extends({ type: type, className: cx('form-control', classes) }, inputProps, {
+          onChange: onChange, value: value })),
+        error && msg
+      );
+    }
+  });
+
+  /**
+   * A component that renders a bootstrap form group with a zip code number input.
+   * Supports error/validation visualization.
+   */
+  mod.ZipInput = _cc({
+
+    displayName: 'ZipInput',
+
+    propTypes: _common_text_input_props,
+
+    render: function render() {
+      var _props5 = this.props;
+      var label = _props5.label;
+      var id = _props5.id;
+      var classes = _props5.classes;
+      var wrapperClasses = _props5.wrapperClasses;
+      var placeholder = _props5.placeholder;
+      var autoFocus = _props5.autoFocus;
+      var _props6 = this.props;
+      var name = _props6.name;
+      var value = _props6.value;
+      var onChange = _props6.onChange;
+      var onBlur = _props6.onBlur;
+      var onKeyUp = _props6.onKeyUp;
+      var error = _props6.error;
+
+      var msg = React.createElement(
+        'div',
+        { className: 'text-danger', style: { marginTop: '5px' } },
+        error
+      );
+      var inputProps = { onChange: onChange, value: value, ref: 'input' };
+      var labelProps = {};
+
+      if (id) {
+        inputProps.id = id;
+        labelProps.htmlFor = id;
+      }
+      if (name) inputProps.name = name;
+      if (onKeyUp) inputProps.onKeyUp = onKeyUp;
+      if (onBlur) inputProps.onBlur = onBlur;
+      if (placeholder) inputProps.placeholder = placeholder;
+      if (autoFocus) inputProps.autoFocus = autoFocus;
+
+      label = label || 'Zip';
+
+      return React.createElement(
+        'div',
+        { className: cx('form-group', { 'has-error': error }, wrapperClasses) },
+        React.createElement(
+          'label',
+          _extends({ className: 'control-label' }, labelProps),
+          label
+        ),
+        React.createElement('input', _extends({ type: 'text', className: cx('form-control', classes) }, inputProps)),
+        error && msg
+      );
+    }
+  });
+
+  /**
+   * A component that renders a bootstrap form group with a phone number input.
+   * Supports error/validation visualization.
+   */
+  mod.PhoneInput = _cc({
+
+    displayName: 'PhoneInput',
+
+    propTypes: _common_text_input_props,
+
+    change: function change(e) {
+      var phone = this.refs.phone;
+
+      try {
+        var formatted = PNU.format(PNU.parse(phone.value, 'US'), PNF.NATIONAL);
+        phone.value = formatted || '';
+      } catch (error) {/* Ignore errors as they type. */}
+
+      this.props.onChange(e);
+    },
+    render: function render() {
+      var _props7 = this.props;
+      var label = _props7.label;
+      var id = _props7.id;
+      var classes = _props7.classes;
+      var wrapperClasses = _props7.wrapperClasses;
+      var name = _props7.name;
+      var value = _props7.value;
+      var error = _props7.error;
+      var placeholder = _props7.placeholder;
+      var autoFocus = _props7.autoFocus;
+
+      var msg = React.createElement(
+        'div',
+        { className: 'text-danger', style: { marginTop: '5px' } },
+        error
+      );
+      var inputProps = { onChange: this.change, value: value };
+      var labelProps = {};
+
+      if (id) {
+        inputProps.id = id;
+        labelProps.htmlFor = id;
+      }
+      if (name) inputProps.name = name;
+      if (autoFocus) inputProps.autoFocus = autoFocus;
+
+      label = label || 'Phone';
+
+      inputProps.placeholder = placeholder || '';
+
+      return React.createElement(
+        'div',
+        { className: cx('form-group', { 'has-error': error }, wrapperClasses) },
+        React.createElement(
+          'label',
+          _extends({ className: 'control-label' }, labelProps),
+          label
+        ),
+        React.createElement('input', _extends({ ref: 'phone', type: 'tel', className: cx('form-control', classes) }, inputProps)),
+        error && msg
+      );
+    }
+  });
+
+  /**
+   * A component that renders a bootstrap two button toggle driven by
+   * two radio button inputs.
+   */
+  mod.ToggleInput = _cc({
+
+    displayName: 'ToggleInput',
+
+    propTypes: {
+      label: PropTypes.string.isRequired,
+      value: PropTypes.bool.isRequired,
+      onChange: PropTypes.func.isRequired,
+      name: PropTypes.string
+    },
+
+    render: function render() {
+      var _props8 = this.props;
+      var label = _props8.label;
+      var name = _props8.name;
+      var value = _props8.value;
+      var onChange = _props8.onChange;
+
+      var inputProps = { onChange: onChange };
+
+      if (name) inputProps.name = name;
+
+      return React.createElement(
+        'div',
+        { className: 'form-group' },
+        React.createElement(
+          'label',
+          { className: 'control-label' },
+          label
+        ),
+        React.createElement(
+          'div',
+          { className: 'btn-group db clearfix' },
+          React.createElement(
+            'label',
+            { className: 'btn btn-default' + (value == true ? ' active' : '') },
+            React.createElement('input', _extends({ type: 'radio', value: true, checked: value == true }, inputProps)),
+            React.createElement(
+              'span',
+              { className: value == true ? 'text-success' : '' },
+              'Yes'
+            )
+          ),
+          React.createElement(
+            'label',
+            { className: 'btn btn-default' + (value != true ? ' active' : '') },
+            React.createElement('input', _extends({ type: 'radio', value: false, checked: value != true }, inputProps)),
+            React.createElement(
+              'span',
+              { className: value != true ? 'text-danger' : '' },
+              'No'
+            )
+          )
+        )
+      );
+    }
+  });
+
+  /**
+   * A component that renders a bootstrap looking range input.
+   */
+  mod.RangeInput = _cc({
+
+    displayName: 'RangeInput',
+
+    propTypes: {
+      id: PropTypes.string,
+      name: PropTypes.string,
+      value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      onChange: PropTypes.func,
+      decorator: PropTypes.any,
+      bsStyle: PropTypes.string,
+      min: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      max: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      step: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+    },
+
+    getDefaultProps: function getDefaultProps() {
+      return {
+        decorator: '%',
+        bsStyle: 'primary',
+        min: 0,
+        max: 100,
+        step: 10
+      };
+    },
+    render: function render() {
+      var _props9 = this.props;
+      var id = _props9.id;
+      var name = _props9.name;
+      var value = _props9.value;
+      var onChange = _props9.onChange;
+      var decorator = _props9.decorator;
+      var bsStyle = _props9.bsStyle;
+      var min = _props9.min;
+      var max = _props9.max;
+      var step = _props9.step;
+      var inputProps = {};
+
+      if (id) inputProps.id = id;
+      if (name) inputProps.name = name;
+      inputProps.value = value;
+      if (onChange) {
+        inputProps.onChange = onChange;
+        inputProps.onMouseMove = onChange;
+      }
+
+      return React.createElement(
+        'div',
+        { className: 'range range-' + bsStyle },
+        React.createElement('input', _extends({ className: 'form-control', type: 'range',
+          min: min, max: max, step: step, value: value }, inputProps)),
+        React.createElement(
+          'output',
+          null,
+          value,
+          decorator
+        )
+      );
+    }
+  });
+
+  /**
+   * Produces a table header with sorting indicator.
+   * An action is fired on header click.
+   * The action type will be `sort` or `<table>.sort` if the
+   * `table` prop was provided. `table` prop should be provided when
+   * multiple sorting tables are used.
+   */
+  mod.SortingHeader = _cc({
+
+    displayName: 'SortingHeader',
+
+    propTypes: {
+      label: PropTypes.string.isRequired,
+      property: PropTypes.string.isRequired,
+      sorting: PropTypes.object.isRequired,
+      events: PropTypes.object,
+      actions: PropTypes.object,
+      table: PropTypes.string
+    },
+
+    sort: function sort() {
+      var _props10 = this.props;
+      var events = _props10.events;
+      var actions = _props10.actions;
+      var table = _props10.table;
+      var property = _props10.property;
+      var sorting = _props10.sorting;
+      var dir = sorting.dir;
+
+      if (sorting.by === property) {
+        dir = sorting.dir === 'asc' ? 'desc' : 'asc';
+      }
+
+      if (actions) {
+        // Newer redux style apps
+        actions.dispatch({
+          type: (table ? table + '.' : '') + 'sort',
+          sorting: { by: property, dir: dir }
+        });
+      } else {
+        // Older event based apps
+        $(events).trigger(events.NEW, {
+          option: (table ? table + '.' : '') + 'sort',
+          sorting: { by: property, dir: dir }
+        });
+      }
+    },
+    render: function render() {
+      var _props11 = this.props;
+      var label = _props11.label;
+      var property = _props11.property;
+      var sorting = _props11.sorting;
+      var classes = ['sorting-header'];
+      var sorterClasses = ['fa'];
+      var sorter = void 0;
+
+      if (sorting.by === property) classes.push('sorting-header--active');
+      sorterClasses.push('fa-angle-' + (sorting.dir === 'asc' ? 'up' : 'down'));
+      sorter = React.createElement('i', { className: sorterClasses.join(' ') });
+
+      return React.createElement(
+        'th',
+        { className: classes.join(' '), onClick: this.sort },
+        sorter,
+        ' ',
+        label
+      );
+    }
+  });
+
+  /**
+   * Iframe component for react. Slightly modified to do some resizing.
+   * @see https://github.com/ryanseddon/react-frame-component
+   */
+  mod.Frame = R.createClass({
+
+    displayName: 'Frame',
+
+    // React warns when you render directly into the body since browser extensions
+    // also inject into the body and can mess up React. For this reason
+    // initialContent is expected to have a div inside of the body
+    // element that we render react into.
+    propTypes: {
+      style: PropTypes.object,
+      head: PropTypes.node,
+      initialContent: PropTypes.string
+    },
+
+    getDefaultProps: function getDefaultProps() {
+      return {
+        initialContent: '<!DOCTYPE html><html><head></head><body><div></div></body></html>'
+      };
+    },
+
+
+    originalError: console.error,
+
+    // Rendering a <head> into a body is technically invalid although it
+    // works. We swallow React's validateDOMNesting warning if that is the
+    // message to avoid confusion.
+    swallowInvalidHeadWarning: function swallowInvalidHeadWarning() {
+      var _this = this;
+
+      console.error = function (msg) {
+        if (/<head>/.test(msg)) return;
+        _this.originalError.call(console, msg);
+      };
+    },
+    resetWarnings: function resetWarnings() {
+      console.error = this.originalError;
+    },
+    render: function render() {
+      // The iframe isn't ready so we drop children from props here. #12, #17
+      return R.createElement('iframe', Object.assign({}, this.props, { children: undefined }));
+    },
+    componentDidMount: function componentDidMount() {
+      var _this2 = this;
+
+      this._isMounted = true;
+      this.renderFrameContents();
+      setTimeout(function () {
+        var frame = RD.findDOMNode(_this2);
+        frame.height = frame.contentWindow.document.body.scrollHeight + 'px';
+      }, 100);
+    },
+    renderFrameContents: function renderFrameContents() {
+      if (!this._isMounted) {
+        return;
+      }
+
+      var doc = RD.findDOMNode(this).contentDocument;
+      if (doc && doc.readyState === 'complete') {
+        var contents = R.createElement('div', undefined, this.props.head, this.props.children);
+
+        if (!this._setInitialContent) {
+          doc.clear();
+          doc.open();
+          doc.write(this.props.initialContent);
+          doc.close();
+          this._setInitialContent = true;
+        }
+
+        this.swallowInvalidHeadWarning();
+        // unstable_renderSubtreeIntoContainer allows us to pass this component as
+        // the parent, which exposes context to any child components.
+        RD.unstable_renderSubtreeIntoContainer(this, contents, doc.body.children[0]);
+        this.resetWarnings();
+      } else {
+        setTimeout(this.renderFrameContents, 0);
+      }
+    },
+    componentDidUpdate: function componentDidUpdate() {
+      var _this3 = this;
+
+      this.renderFrameContents();
+      setTimeout(function () {
+        var frame = RD.findDOMNode(_this3);
+        frame.height = frame.contentWindow.document.body.scrollHeight + 'px';
+      }, 100);
+    },
+    componentWillUnmount: function componentWillUnmount() {
+      this._isMounted = false;
+
+      var doc = RD.findDOMNode(this).contentDocument;
+      if (doc) {
+        RD.unmountComponentAtNode(doc.body);
+      }
+    }
+  });
+
+  /**
+   * A generic confirmation modal.
+   */
+  mod.Confirm = _cc({
+
+    displayName: 'Confirm',
+
+    propTypes: {
+      confirmAction: PropTypes.func.isRequired,
+      cancelAction: PropTypes.func.isRequired,
+      showing: PropTypes.bool.isRequired,
+      classes: PropTypes.string,
+      title: PropTypes.string,
+      message: PropTypes.any,
+      confirmBtnText: PropTypes.string,
+      cancelBtnText: PropTypes.string
+    },
+
+    render: function render() {
+      var _props12 = this.props;
+      var confirmAction = _props12.confirmAction;
+      var cancelAction = _props12.cancelAction;
+      var _props13 = this.props;
+      var showing = _props13.showing;
+      var classes = _props13.classes;
+      var title = _props13.title;
+      var message = _props13.message;
+      var _props14 = this.props;
+      var confirmBtnText = _props14.confirmBtnText;
+      var cancelBtnText = _props14.cancelBtnText;
+
+
+      classes = classes || 'theme-default';
+      title = title || 'Confirm';
+      message = message || 'Are you sure';
+      confirmBtnText = confirmBtnText || 'OK';
+      cancelBtnText = cancelBtnText || 'CANCEL';
+
+      return React.createElement(
+        Modal,
+        { className: classes, show: showing, onHide: cancelAction },
+        React.createElement(
+          Modal.Header,
+          { closeButton: true },
+          React.createElement(
+            Modal.Title,
+            null,
+            title
+          )
+        ),
+        React.createElement(
+          Modal.Body,
+          null,
+          React.createElement(
+            'div',
+            { className: 'padded' },
+            message
+          )
+        ),
+        React.createElement(
+          Modal.Footer,
+          null,
+          React.createElement(
+            Button,
+            { onClick: cancelAction, className: 'btn-link' },
+            cancelBtnText
+          ),
+          React.createElement(
+            Button,
+            { onClick: confirmAction, bsStyle: 'primary' },
+            confirmBtnText
+          )
+        )
+      );
+    }
+  });
+
+  mod.icons = {
+    loaders: {
+      Circle1: function Circle1(props) {
+        return React.createElement(
+          'div',
+          { className: cx('svg-loader', props.classes) },
+          React.createElement(
+            'svg',
+            { x: '0', y: '0', viewBox: '0 0 40 40', 'enable-background': 'new 0 0 40 40' },
+            React.createElement('path', { opacity: '0.2', fill: '#000',
+              d: 'M20.201,5.169c-8.254,0-14.946,6.692-14.946,14.946c0,8.255,6.692,14.946,14.946,14.946 s14.946-6.691,14.946-14.946C35.146,11.861,28.455,5.169,20.201,5.169z M20.201,31.749c-6.425,0-11.634-5.208-11.634-11.634 c0-6.425,5.209-11.634,11.634-11.634c6.425,0,11.633,5.209,11.633,11.634C31.834,26.541,26.626,31.749,20.201,31.749z' }),
+            React.createElement(
+              'path',
+              { fill: '#000', d: 'M26.013,10.047l1.654-2.866c-2.198-1.272-4.743-2.012-7.466-2.012h0v3.312h0 C22.32,8.481,24.301,9.057,26.013,10.047z' },
+              React.createElement('animateTransform', { attributeType: 'xml', attributeName: 'transform', type: 'rotate', from: '0 20 20', to: '360 20 20', dur: '0.5s', repeatCount: 'indefinite' })
+            )
+          )
+        );
+      },
+
+      Circle2: function Circle2(props) {
+        return React.createElement(
+          'div',
+          { className: cx('svg-loader', props.classes) },
+          React.createElement(
+            'svg',
+            { x: '0', y: '0', viewBox: '0 0 50 50', 'enable-background': 'new 0 0 50 50' },
+            React.createElement(
+              'path',
+              { fill: '#000', d: 'M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z' },
+              React.createElement('animateTransform', { attributeType: 'xml', attributeName: 'transform', type: 'rotate', from: '0 25 25', to: '360 25 25', dur: '0.6s', repeatCount: 'indefinite' })
+            )
+          )
+        );
+      },
+
+      Circle3: function Circle3(props) {
+        return React.createElement(
+          'div',
+          { className: cx('svg-loader', props.classes) },
+          React.createElement(
+            'svg',
+            { x: '0', y: '0', viewBox: '0 0 50 50', 'enable-background': 'new 0 0 50 50' },
+            React.createElement(
+              'path',
+              { fill: '#000', d: 'M43.935,25.145c0-10.318-8.364-18.683-18.683-18.683c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615c8.072,0,14.615,6.543,14.615,14.615H43.935z' },
+              React.createElement('animateTransform', { attributeType: 'xml', attributeName: 'transform', type: 'rotate', from: '0 25 25', to: '360 25 25', dur: '0.6s', repeatCount: 'indefinite' })
+            )
+          )
+        );
+      },
+
+      Bars1: function Bars1(props) {
+        return React.createElement(
+          'div',
+          { className: cx('svg-loader', props.classes) },
+          React.createElement(
+            'svg',
+            { x: '0', y: '0', viewBox: '0 0 24 24', 'enable-background': 'new 0 0 50 50' },
+            React.createElement(
+              'rect',
+              { x: '0', y: '0', width: '4', height: '7', fill: '#333' },
+              React.createElement('animateTransform', { attributeType: 'xml', attributeName: 'transform', type: 'scale', values: '1,1; 1,3; 1,1', begin: '0s', dur: '0.6s', repeatCount: 'indefinite' })
+            ),
+            React.createElement(
+              'rect',
+              { x: '10', y: '0', width: '4', height: '7', fill: '#333' },
+              React.createElement('animateTransform', { attributeType: 'xml', attributeName: 'transform', type: 'scale', values: '1,1; 1,3; 1,1', begin: '0.2s', dur: '0.6s', repeatCount: 'indefinite' })
+            ),
+            React.createElement(
+              'rect',
+              { x: '20', y: '0', width: '4', height: '7', fill: '#333' },
+              React.createElement('animateTransform', { attributeType: 'xml', attributeName: 'transform', type: 'scale', values: '1,1; 1,3; 1,1', begin: '0.4s', dur: '0.6s', repeatCount: 'indefinite' })
+            )
+          )
+        );
+      },
+
+      Bars2: function Bars2(props) {
+        return React.createElement(
+          'div',
+          { className: cx('svg-loader', props.classes) },
+          React.createElement(
+            'svg',
+            { x: '0', y: '0', viewBox: '0 0 24 30', 'enable-background': 'new 0 0 50 50' },
+            React.createElement(
+              'rect',
+              { x: '0', y: '0', width: '4', height: '10', fill: '#333' },
+              React.createElement('animateTransform', { attributeType: 'xml', attributeName: 'transform', type: 'translate', values: '0 0; 0 20; 0 0', begin: '0', dur: '0.6s', repeatCount: 'indefinite' })
+            ),
+            React.createElement(
+              'rect',
+              { x: '10', y: '0', width: '4', height: '10', fill: '#333' },
+              React.createElement('animateTransform', { attributeType: 'xml', attributeName: 'transform', type: 'translate', values: '0 0; 0 20; 0 0', begin: '0.2s', dur: '0.6s', repeatCount: 'indefinite' })
+            ),
+            React.createElement(
+              'rect',
+              { x: '20', y: '0', width: '4', height: '10', fill: '#333' },
+              React.createElement('animateTransform', { attributeType: 'xml', attributeName: 'transform', type: 'translate', values: '0 0; 0 20; 0 0', begin: '0.4s', dur: '0.6s', repeatCount: 'indefinite' })
+            )
+          )
+        );
+      },
+
+      Bars3: function Bars3(props) {
+        return React.createElement(
+          'div',
+          { className: cx('svg-loader', props.classes) },
+          React.createElement(
+            'svg',
+            { x: '0', y: '0', viewBox: '0 0 24 30', 'enable-background': 'new 0 0 50 50' },
+            React.createElement(
+              'rect',
+              { x: '0', y: '13', width: '4', height: '5', fill: '#333' },
+              React.createElement('animate', { attributeName: 'height', attributeType: 'XML', values: '5;21;5', begin: '0s', dur: '0.6s', repeatCount: 'indefinite' }),
+              React.createElement('animate', { attributeName: 'y', attributeType: 'XML', values: '13; 5; 13', begin: '0s', dur: '0.6s', repeatCount: 'indefinite' })
+            ),
+            React.createElement(
+              'rect',
+              { x: '10', y: '13', width: '4', height: '5', fill: '#333' },
+              React.createElement('animate', { attributeName: 'height', attributeType: 'XML', values: '5;21;5', begin: '0.15s', dur: '0.6s', repeatCount: 'indefinite' }),
+              React.createElement('animate', { attributeName: 'y', attributeType: 'XML', values: '13; 5; 13', begin: '0.15s', dur: '0.6s', repeatCount: 'indefinite' })
+            ),
+            React.createElement(
+              'rect',
+              { x: '20', y: '13', width: '4', height: '5', fill: '#333' },
+              React.createElement('animate', { attributeName: 'height', attributeType: 'XML', values: '5;21;5', begin: '0.3s', dur: '0.6s', repeatCount: 'indefinite' }),
+              React.createElement('animate', { attributeName: 'y', attributeType: 'XML', values: '13; 5; 13', begin: '0.3s', dur: '0.6s', repeatCount: 'indefinite' })
+            )
+          )
+        );
+      },
+
+      Bars4: function Bars4(props) {
+        return React.createElement(
+          'div',
+          { className: cx('svg-loader', props.classes) },
+          React.createElement(
+            'svg',
+            { x: '0', y: '0', viewBox: '0 0 24 30', 'enable-background': 'new 0 0 50 50' },
+            React.createElement(
+              'rect',
+              { x: '0', y: '0', width: '4', height: '20', fill: '#333' },
+              React.createElement('animate', { attributeName: 'opacity', attributeType: 'XML', values: '1; .2; 1', begin: '0s', dur: '0.6s', repeatCount: 'indefinite' })
+            ),
+            React.createElement(
+              'rect',
+              { x: '7', y: '0', width: '4', height: '20', fill: '#333' },
+              React.createElement('animate', { attributeName: 'opacity', attributeType: 'XML', values: '1; .2; 1', begin: '0.2s', dur: '0.6s', repeatCount: 'indefinite' })
+            ),
+            React.createElement(
+              'rect',
+              { x: '14', y: '0', width: '4', height: '20', fill: '#333' },
+              React.createElement('animate', { attributeName: 'opacity', attributeType: 'XML', values: '1; .2; 1', begin: '0.4s', dur: '0.6s', repeatCount: 'indefinite' })
+            )
+          )
+        );
+      },
+
+      Bars5: function Bars5(props) {
+        return React.createElement(
+          'div',
+          { className: cx('svg-loader', props.classes) },
+          React.createElement(
+            'svg',
+            { x: '0', y: '0', viewBox: '0 0 24 30', 'enable-background': 'new 0 0 50 50' },
+            React.createElement(
+              'rect',
+              { x: '0', y: '10', width: '4', height: '10', fill: '#333', opacity: '0.2' },
+              React.createElement('animate', { attributeName: 'opacity', attributeType: 'XML', values: '0.2; 1; .2', begin: '0s', dur: '0.6s', repeatCount: 'indefinite' }),
+              React.createElement('animate', { attributeName: 'height', attributeType: 'XML', values: '10; 20; 10', begin: '0s', dur: '0.6s', repeatCount: 'indefinite' }),
+              React.createElement('animate', { attributeName: 'y', attributeType: 'XML', values: '10; 5; 10', begin: '0s', dur: '0.6s', repeatCount: 'indefinite' })
+            ),
+            React.createElement(
+              'rect',
+              { x: '8', y: '10', width: '4', height: '10', fill: '#333', opacity: '0.2' },
+              React.createElement('animate', { attributeName: 'opacity', attributeType: 'XML', values: '0.2; 1; .2', begin: '0.15s', dur: '0.6s', repeatCount: 'indefinite' }),
+              React.createElement('animate', { attributeName: 'height', attributeType: 'XML', values: '10; 20; 10', begin: '0.15s', dur: '0.6s', repeatCount: 'indefinite' }),
+              React.createElement('animate', { attributeName: 'y', attributeType: 'XML', values: '10; 5; 10', begin: '0.15s', dur: '0.6s', repeatCount: 'indefinite' })
+            ),
+            React.createElement(
+              'rect',
+              { x: '16', y: '10', width: '4', height: '10', fill: '#333', opacity: '0.2' },
+              React.createElement('animate', { attributeName: 'opacity', attributeType: 'XML', values: '0.2; 1; .2', begin: '0.3s', dur: '0.6s', repeatCount: 'indefinite' }),
+              React.createElement('animate', { attributeName: 'height', attributeType: 'XML', values: '10; 20; 10', begin: '0.3s', dur: '0.6s', repeatCount: 'indefinite' }),
+              React.createElement('animate', { attributeName: 'y', attributeType: 'XML', values: '10; 5; 10', begin: '0.3s', dur: '0.6s', repeatCount: 'indefinite' })
+            )
+          )
+        );
+      }
+    }
+  };
+
+  /* METHODS
+   --------------------------------------------------------------- */
+
+  mod.text = {
+
+    /**
+     * Weave <br>'s in between each string in an array of strings.
+     * Each string in the original array is wrapped in a span to apply a key.
+     * @param {String[]} text - The array of strings to weave <br>'s into.
+     */
+    'break': function _break(text) {
+      return text.reduce(function (prev, curr, i) {
+        prev.push(React.createElement(
+          'span',
+          { key: 't-' + i },
+          curr
+        ));
+        if (i < text.length - 1) prev.push(React.createElement('br', { key: 'b-' + i }));
+        return prev;
+      }, []);
+    }
+
+  };
+
+  mod.validators = {
+
+    /**
+     * Returns a dom event handler (usually for `onBlur`)
+     * that dispatches an action if the value is not a valid email.
+     * @param {string} type - The action type.
+     * @param {function} dispatch - The store dispatcher.
+     * @param {string} [msg] - The Error message.
+     * @returns {function} - The dom event handler.
+     */
+    email: function email(type, dispatch, msg) {
+      return function (e) {
+        var value = e.target.value;
+
+        msg = msg || 'Please enter a valid email address.';
+        if (!util.validate.email(value)) dispatch({ type: type, value: msg });
+      };
+    },
+
+    /**
+     * Returns a dom event handler that dispatches an action value is empty.
+     * @param {string} type - The action type.
+     * @param {function} dispatch - The store dispatcher.
+     * @param {string} [msg] - The Error message.
+     * @returns {function} - The dom event handler.
+     */
+    required: function required(type, dispatch, msg) {
+      return function (e) {
+        var value = e.target.value;
+
+        msg = msg || 'Required';
+        if (!value || !value.trim()) dispatch({ type: type, value: msg });
+      };
+    }
+
+  };
+
+  return mod;
+}(jQuery, i18n, classNames, React, ReactDOM, ReactBootstrap);
 util.namespace('util.storage');
 
 /**

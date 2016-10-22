@@ -14,7 +14,12 @@ gulp.task('clean', function () {
 gulp.task('vendor-js', function () {
   return gulp.src([
     './node_modules/jquery/dist/jquery.min.js',
-    './node_modules/cookiejs/cookie.min.js'
+    './node_modules/js-cookie/src/js.cookie.js',
+    './node_modules/react/dist/react-with-addons.min.js',
+    './node_modules/react-dom/dist/react-dom.min.js',
+    './node_modules/react-bootstrap/dist/react-bootstrap.min.js',
+    './node_modules/classnames/index.js',
+    './node_modules/libphonenumber-umd/libphonenumber.js'
   ])
   .pipe(plumber())
   .pipe(concat('vendor.js'))
@@ -30,7 +35,9 @@ gulp.task('scripts', function () {
     './scripts/app/**/*.js'
   ])
   .pipe(plumber())
-  .pipe(concat('util.js'))
+  .pipe(concat('util-pre.js'))
+  .pipe(gulp.dest('./build'))
+  .pipe(rename('util.js'))
   .pipe(babel({ presets: ['es2015'] }))
   .pipe(gulp.dest('./build'))
   .pipe(rename('util.min.js'))
