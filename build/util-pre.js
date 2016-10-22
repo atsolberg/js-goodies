@@ -456,7 +456,7 @@ if (!String.prototype.trim) {
  * @module util
  * @requires jQuery
  */
-util = (function($) {
+window.util = (function($) {
 
   'use strict';
   
